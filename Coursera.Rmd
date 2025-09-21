@@ -1,2 +1,136 @@
-Coursera.Rmd
-#Coursera project
+---
+title: "Predicting Human Activity Using Accelerometer Data"
+author: "Degu Hewan Demissie"
+date: "2025-09-21"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r package, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(caret)
+library(randomForest)
+library(dplyr)
+library(ggplot2)
+```
+
+
+# Introduction
+
+This project applies machine learning techniques to predict human activity based on accelerometer data collected from wearable devices. The goal is to build a robust classifier using the  variable as the outcome and evaluate its performance.
+
+# Load data
+
+```{r load-data}
+training <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv")
+testing  <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv")
+# Remove columns with >90% missing values
+training <- training[, colSums(is.na(training)) < nrow(training) * 0.9]
+```
+
+# Remove columns with too many NAs and irrelevant metadata
+
+```{r remove unwanted-data}
+training <- training %>%
+  select_if(function(col) mean(!is.na(col)) > 0.9) %>%
+  select(-c(X, user_name, raw_timestamp_part_1, raw_timestamp_part_2,
+            cvtd_timestamp, new_window, num_window))
+head(training)
+```
+
+# Partition the data
+
+```{r partiction-data}
+set.seed(123)
+inTrain <- createDataPartition(training$classe, p = 0.7, list = FALSE)
+trainSet <- training[inTrain, ]
+validationSet <- training[-inTrain, ]
+
+training <- training[, -c(1:7)]
+```
+
+# Ensure target variable is intact
+
+
+```{r intact-data}
+table(training$classe)
+```
+
+#  Minimal Working Example
+
+```{r minimal-data}
+library(caret)
+library(randomForest)
+```
+
+# Ensure target is factor
+
+```{r target-data}
+# Preserve 'classe' before filtering
+classe_col <- trainSet$classe
+
+# Remove character columns except 'classe'
+trainSet <- trainSet[, sapply(trainSet, function(x) !is.character(x))]
+
+# Reattach 'classe' and convert to factor
+trainSet$classe <- as.factor(classe_col)
+table(trainSet$classe)
+trainSet$classe <- as.factor(trainSet$classe)
+
+```
+# Train model
+
+```{r train1-data}
+library(caret)
+library(randomForest)
+classe_col <- trainSet$classe
+trainSet <- trainSet[, sapply(trainSet, function(x) !is.character(x))]
+trainSet$classe <- as.factor(classe_col)
+
+```
+
+# Missing values
+If  contains s,  may fail silently or throw cryptic errors.ix:
+
+
+```{r fix-data}
+trainSet <- trainSet[, colSums(is.na(trainSet)) == 0]
+trainSet <- trainSet[!is.na(trainSet$classe), ]
+```
+
+
+# Empty or corrupted 
+
+If  has zero rows or columns after preprocessing, the model can’t train.
+heck:
+
+```{r empty corrupted-data}
+dim(trainSet)
+summary(trainSet$classe)
+```
+
+# Final evaluation 
+
+```{r train1_data}
+library(caret)
+library(randomForest)
+
+set.seed(123)
+
+# Ensure 'classe' is preserved and predictors are clean
+classe_col <- trainSet$classe
+trainSet <- trainSet[, sapply(trainSet, function(x) !is.character(x))]
+trainSet$classe <- as.factor(classe_col)
+
+# Remove predictors with missing values
+trainSet <- trainSet[, colSums(is.na(trainSet)) == 0]
+
+model_rf <- train(classe ~ ., data = trainSet,
+                  method = "rf",
+                  trControl = trainControl(method = "cv", number = 5))
+model_rf
+```
+
